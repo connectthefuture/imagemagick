@@ -1,0 +1,37 @@
+From 235cd684fd1283d5db85376c8a7f41622391e0ce Mon Sep 17 00:00:00 2001
+From: dirk <dirk@git.imagemagick.org>
+Date: Thu, 17 Sep 2015 22:35:27 +0200
+Subject: [PATCH] Fixed size of memory allocation to avoid segfault (Github:
+ #32).
+
+Bug: https://github.com/ImageMagick/ImageMagick/issues/32
+Fixed-upstream: 6.9.2-2
+---
+ coders/rle.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/coders/rle.c b/coders/rle.c
+index 84b0ccc..5808d5b 100644
+--- a/coders/rle.c
++++ b/coders/rle.c
+@@ -212,10 +212,7 @@ static Image *ReadRLEImage(const ImageInfo *image_info,ExceptionInfo *exception)
+   image=AcquireImage(image_info);
+   status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
+   if (status == MagickFalse)
+-    {
+-      image=DestroyImageList(image);
+-      return((Image *) NULL);
+-    }
++    return(DestroyImageList(image));
+   /*
+     Determine if this a RLE file.
+   */
+@@ -321,7 +318,7 @@ static Image *ReadRLEImage(const ImageInfo *image_info,ExceptionInfo *exception)
+     number_pixels=(MagickSizeType) image->columns*image->rows;
+     if ((number_pixels*number_planes) != (size_t) (number_pixels*number_planes))
+       ThrowReaderException(ResourceLimitError,"MemoryAllocationFailed");
+-    pixel_info_length=image->columns*image->rows*MagickMax(number_planes,4);
++    pixel_info_length=image->columns*image->rows*number_planes;
+     pixel_info=AcquireVirtualMemory(pixel_info_length,sizeof(*pixels));
+     if (pixel_info == (MemoryInfo *) NULL)
+       ThrowReaderException(ResourceLimitError,"MemoryAllocationFailed");

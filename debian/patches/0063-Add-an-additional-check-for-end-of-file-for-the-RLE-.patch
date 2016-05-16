@@ -1,0 +1,48 @@
+From 0c7c348630121b7ed156bc6542e4f165bbe1a0be Mon Sep 17 00:00:00 2001
+From: cristy <urban-warrior@git.imagemagick.org>
+Date: Thu, 18 Jun 2015 23:36:26 +0000
+Subject: [PATCH] Add an additional check for end-of-file for the RLE coder
+
+Bug: http://www.imagemagick.org/discourse-server/viewforum.php?f=3
+Applied-upstream: 6.9.1.6
+---
+ coders/rle.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/coders/rle.c b/coders/rle.c
+index 74f4968..84b0ccc 100644
+--- a/coders/rle.c
++++ b/coders/rle.c
+@@ -227,8 +227,8 @@ static Image *ReadRLEImage(const ImageInfo *image_info,ExceptionInfo *exception)
+     /*
+       Read image header.
+     */
+-    (void) ReadBlobLSBShort(image);
+-    (void) ReadBlobLSBShort(image);
++    image->page.x=ReadBlobLSBShort(image);
++    image->page.y=ReadBlobLSBShort(image);
+     image->columns=ReadBlobLSBShort(image);
+     image->rows=ReadBlobLSBShort(image);
+     flags=(MagickStatusType) ReadBlobByte(image);
+@@ -237,7 +237,7 @@ static Image *ReadRLEImage(const ImageInfo *image_info,ExceptionInfo *exception)
+     bits_per_pixel=1UL*ReadBlobByte(image);
+     number_colormaps=1UL*ReadBlobByte(image);
+     map_length=(unsigned char) ReadBlobByte(image);
+-    if (map_length >= 64)
++    if (map_length >= 32)
+       ThrowReaderException(CorruptImageError,"ImproperImageHeader");
+     one=1;
+     map_length=one << map_length;
+@@ -264,6 +264,12 @@ static Image *ReadRLEImage(const ImageInfo *image_info,ExceptionInfo *exception)
+       }
+     if ((number_planes & 0x01) == 0)
+       (void) ReadBlobByte(image);
++    if (EOFBlob(image) != MagickFalse)
++      {
++        ThrowFileException(exception,CorruptImageError,"UnexpectedEndOfFile",
++          image->filename);
++        break;
++      }
+     colormap=(unsigned char *) NULL;
+     if (number_colormaps != 0)
+       {

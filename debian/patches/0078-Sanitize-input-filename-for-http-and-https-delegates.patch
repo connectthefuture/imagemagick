@@ -1,0 +1,66 @@
+Description: Sanitize input filename for http / https delegates 
+  cherry-picked from 06c41aba39b97203f6b9a0be6a2ccf8888cddc93 and 
+  a347456a1ef3b900c20402f9866992a17eb5d181.
+Origin: upstream, https://github.com/ImageMagick/ImageMagick/commit/06c41aba39b97203f6b9a0be6a2ccf8888cddc93, https://github.com/ImageMagick/ImageMagick/commit/a347456a1ef3b900c20402f9866992a17eb5d181
+Applied-Upstream: commit, 06c41aba39b97203f6b9a0be6a2ccf8888cddc93, a347456a1ef3b900c20402f9866992a17eb5d181
+Bug: https://www.imagemagick.org/discourse-server/viewtopic.php?f=4&t=29588
+Bug-CVE: CVE-2016-3714
+Bug-Debian: https://bugs.debian.org/823542
+Last-Update: 2016-05-16
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/config/delegates.xml.in
++++ b/config/delegates.xml.in
+@@ -55,6 +55,7 @@
+     %w  image columns (width)
+     %x  input image x resolution
+     %y  input image y resolution
++    %F  sanitized original input filename
+ 
+   Set option delegate:bimodal=true to process bimodal delegates otherwise they
+   are ignored.
+@@ -87,7 +88,7 @@
+   <delegate decode="hpgl" command="&quot;@HPGLDecodeDelegate@&quot; -q -m eps -f `basename &quot;%o&quot;` &quot;%i&quot;;     mv -f `basename &quot;%o&quot;` &quot;%o&quot;"/>
+   <delegate decode="htm" command="&quot;@HTMLDecodeDelegate@&quot; -U -o &quot;%o&quot; &quot;%i&quot;"/>
+   <delegate decode="html" command="&quot;@HTMLDecodeDelegate@&quot; -U -o &quot;%o&quot; &quot;%i&quot;"/>
+-  <delegate decode="https" command="&quot;@WWWDecodeDelegate@&quot; -s -k -L -o &quot;%o&quot; &quot;https:%M&quot;"/>
++  <delegate decode="https" command="&quot;@WWWDecodeDelegate@&quot; -s -k -L -o &quot;%o&quot; &quot;https:%F&quot;"/>
+   <delegate decode="ilbm" command="&quot;@ILBMDecodeDelegate@&quot; &quot;%i&quot; &gt; &quot;%o&quot;"/>
+   <delegate decode="jxr" command="mv &quot;%i&quot; &quot;%i.jxr&quot;; &quot;@JXRDecodeDelegate@&quot; -i &quot;%i.jxr&quot; -o &quot;%o.bmp&quot; -c 0; mv &quot;%i.jxr&quot; &quot;%i&quot;; mv &quot;%o.bmp&quot; &quot;%o&quot;"/>
+   <delegate decode="man" command="&quot;@MANDelegate@&quot; -man -Tps &quot;%i&quot; &gt; &quot;%o&quot;"/>
+@@ -131,5 +132,5 @@
+   <delegate decode="xps:cmyk" stealth="True" command="&quot;@XPSDelegate@&quot; -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &quot;-sDEVICE=@XPSCMYKDevice@&quot; -dTextAlphaBits=%u -dGraphicsAlphaBits=%u &quot;-r%s&quot; %s &quot;-sOutputFile=%s&quot; &quot;%s&quot;"/>
+   <delegate decode="xps:color" stealth="True" command="&quot;@XPSDelegate@&quot; -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &quot;-sDEVICE=@XPSColorDevice@&quot; -dTextAlphaBits=%u -dGraphicsAlphaBits=%u &quot;-r%s&quot; %s &quot;-sOutputFile=%s&quot; &quot;%s&quot;"/>
+   <delegate decode="xps:mono" stealth="True" command="&quot;@XPSDelegate@&quot; -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &quot;-sDEVICE=@XPSMonoDevice@&quot; -dTextAlphaBits=%u -dGraphicsAlphaBits=%u &quot;-r%s&quot; %s &quot;-sOutputFile=%s&quot; &quot;%s&quot;"/>
+-  <delegate encode="mpeg:encode" stealth="True" command="&quot;@MPEGEncodeDelegate@&quot; -v -1 -i &quot;%M%%d.jpg&quot; &quot;%u.%m&quot; 2&gt; &quot;%Z&quot;"/>
++  <delegate encode="mpeg:encode" stealth="True" command="&quot;@MPEGEncodeDelegate@&quot; -v -1 -i &quot;%F%%d.jpg&quot; &quot;%u.%m&quot; 2&gt; &quot;%Z&quot;"/>
+ </delegatemap>
+--- a/magick/property.c
++++ b/magick/property.c
+@@ -2516,6 +2516,26 @@ static const char *GetMagickPropertyLett
+         CommandOptionToMnemonic(MagickDisposeOptions,(ssize_t) image->dispose));
+       break;
+     }
++    case 'F': /* Magick filename (sanitized) - filename given incl. coder & read mods */
++    {
++      const char
++        *q;
++
++      register char
++        *p;
++
++      static char
++        whitelist[] =
++          "^-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
++          "+&@#/%?=~_|!:,.;()";
++
++      (void) CopyMagickString(value,image->magick_filename,MaxTextExtent);
++      p=value;
++      q=value+strlen(value);
++      for (p+=strspn(p,whitelist); p != q; p+=strspn(p,whitelist))
++        *p='_';
++      break;
++    }
+     case 'G':
+     {
+       /*

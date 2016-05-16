@@ -1,0 +1,26 @@
+From cd8f0c3d9d7f4a1a51a42d746179f40f71a76da9 Mon Sep 17 00:00:00 2001
+From: dirk <dirk@git.imagemagick.org>
+Date: Wed, 16 Dec 2015 21:37:00 +0100
+Subject: [PATCH] Fixed memory leak when reading incorrect PSD files
+
+Fixed-upstream: 6.9.2.10
+---
+ coders/psd.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/coders/psd.c b/coders/psd.c
+index e0dc766..f6eedb7 100644
+--- a/coders/psd.c
++++ b/coders/psd.c
+@@ -1521,8 +1521,10 @@ static MagickStatusType ReadPSDLayers(Image *image,const ImageInfo *image_info,
+             image->next=layer_info[0].image;
+             layer_info[0].image->previous=image;
+           }
++        layer_info=(LayerInfo *) RelinquishMagickMemory(layer_info);
+       }
+-      layer_info=(LayerInfo *) RelinquishMagickMemory(layer_info);
++      else
++        layer_info=DestroyLayerInfo(layer_info,number_layers);
+     }
+ 
+   return(status);

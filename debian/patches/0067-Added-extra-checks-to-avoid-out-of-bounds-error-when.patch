@@ -1,0 +1,42 @@
+From 8c953645e59e07bdebb2fe5469dd9756f0a515a6 Mon Sep 17 00:00:00 2001
+From: dirk <dirk@git.imagemagick.org>
+Date: Thu, 17 Sep 2015 13:10:15 +0200
+Subject: [PATCH] Added extra checks to avoid out of bounds error when parsing
+ the 8bim profile. (Github: #31)
+
+Bug: https://github.com/ImageMagick/ImageMagick/issues/31
+Fixed-upstream: 6.9.2-2
+---
+ magick/profile.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/magick/profile.c b/magick/profile.c
+index e8ee899..44b45b3 100644
+--- a/magick/profile.c
++++ b/magick/profile.c
+@@ -1573,7 +1573,8 @@ static void GetProfilesFromResourceBlock(Image *image,
+       break;
+     p=ReadResourceLong(p,&value);
+     count=(ssize_t) value;
+-    if ((p > (datum+length-count)) || (count > (ssize_t) length))
++    if ((p > (datum+length-count)) || (count > (ssize_t) length) ||
++        (count < 0))
+       break;
+     switch (id)
+     {
+@@ -1913,13 +1914,13 @@ static MagickBooleanType Sync8BimProfile(Image *image,StringInfo *profile)
+       return(MagickFalse);
+     id=ReadProfileMSBShort(&p,&length);
+     count=(ssize_t) ReadProfileByte(&p,&length);
+-    if (count > length)
++    if ((count > (ssize_t) length) || (count < 0))
+       return(MagickFalse);
+     p+=count;
+     if ((*p & 0x01) == 0)
+       (void) ReadProfileByte(&p,&length);
+     count=(ssize_t) ReadProfileMSBLong(&p,&length);
+-    if (count > length)
++    if ((count > (ssize_t) length) || (count < 0))
+       return(MagickFalse);
+     if ((id == 0x3ED) && (count == 16))
+       {
