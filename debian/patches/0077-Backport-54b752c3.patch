@@ -1,0 +1,44 @@
+Description: ImageMagick 6.9.2 has incorrect getColor behavior
+ A further fix was pushed upstream for the color code to ensure that
+ color values are rounded correctly to the quantum.
+Author: Nishanth Aravamudan <nish.aravamudan@canonical.com>
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1549942
+Origin: backport, https://github.com/ImageMagick/ImageMagick/commit/54b752c303f12fa7f39f4990b859403932c11e03#diff-b48c4feab32724d54e6e77845f23f7cc
+
+--- imagemagick-6.8.9.9.orig/magick/color.c
++++ imagemagick-6.8.9.9/magick/color.c
+@@ -1159,7 +1159,7 @@ MagickExport void ConcatenateColorCompon
+   if (compliance == NoCompliance)
+     {
+       (void) FormatLocaleString(component,MaxTextExtent,"%.*g",
+-        GetMagickPrecision(),color);
++        GetMagickPrecision(),(double) ClampToQuantum(color));
+       (void) ConcatenateMagickString(tuple,component,MaxTextExtent);
+       return;
+     }
+@@ -1187,7 +1187,7 @@ MagickExport void ConcatenateColorCompon
+   if (channel == OpacityChannel)
+     {
+       (void) FormatLocaleString(component,MaxTextExtent,"%.*g",
+-        GetMagickPrecision(),(QuantumScale*color));
++        GetMagickPrecision(),(double) ClampToQuantum(QuantumScale*color));
+       (void) ConcatenateMagickString(tuple,component,MaxTextExtent);
+       return;
+     }
+@@ -1200,14 +1200,14 @@ MagickExport void ConcatenateColorCompon
+       (pixel->colorspace == HWBColorspace))
+     {
+       (void) FormatLocaleString(component,MaxTextExtent,"%.*g%%",
+-        GetMagickPrecision(),(100.0*QuantumScale*color));
++        GetMagickPrecision(),(double) ClampToQuantum(100.0*QuantumScale*color));
+       (void) ConcatenateMagickString(tuple,component,MaxTextExtent);
+       return;
+     }
+   if ((pixel->colorspace == LabColorspace) || (pixel->depth > 8))
+     {
+       (void) FormatLocaleString(component,MaxTextExtent,"%.*g%%",
+-        GetMagickPrecision(),(100.0*QuantumScale*color));
++        GetMagickPrecision(),(double) ClampToQuantum(100.0*QuantumScale*color));
+       (void) ConcatenateMagickString(tuple,component,MaxTextExtent);
+       return;
+     }

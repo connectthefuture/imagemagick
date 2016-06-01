@@ -1,0 +1,56 @@
+From 2176134da732b638db47c5aa713dffccbe4837b9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bastien=20ROUCARI=C3=88S?= <roucaries.bastien@gmail.com>
+Date: Mon, 7 Dec 2015 16:04:17 +0100
+Subject: [PATCH] Fix overflow in pict image parsing  Backport a small part of
+ an upstream commit fixing  an issue with pict image parsing. Origin:
+ backport,
+ https://github.com/ImageMagick/ImageMagick/commit/0f6fc2d5bf8f500820c3dbcf0d23ee14f2d9f734
+ Bug-Ubuntu:
+ https://bugs.launchpad.net/ubuntu/+source/imagemagick/+bug/1448803
+ Applied-Upstream: 7.0.0 Last-Update: 2015-11-27 --- This patch header follows
+ DEP-3: http://dep.debian.net/deps/dep3/
+
+---
+ coders/pict.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/coders/pict.c b/coders/pict.c
+index f6165a4..ee24aeb 100644
+--- a/coders/pict.c
++++ b/coders/pict.c
+@@ -1615,7 +1615,8 @@ static MagickBooleanType WritePICTImage(const ImageInfo *image_info,
+     storage_class;
+ 
+   ssize_t
+-    y;
++    y,
++    row_bytes;
+ 
+   unsigned char
+     *buffer,
+@@ -1625,7 +1626,6 @@ static MagickBooleanType WritePICTImage(const ImageInfo *image_info,
+ 
+   unsigned short
+     base_address,
+-    row_bytes,
+     transfer_mode;
+ 
+   /*
+@@ -1656,7 +1656,7 @@ static MagickBooleanType WritePICTImage(const ImageInfo *image_info,
+   source_rectangle=size_rectangle;
+   destination_rectangle=size_rectangle;
+   base_address=0xff;
+-  row_bytes=(unsigned short) (image->columns | 0x8000);
++  row_bytes=image->columns;
+   bounds.top=0;
+   bounds.left=0;
+   bounds.bottom=(short) image->rows;
+@@ -1686,7 +1686,7 @@ static MagickBooleanType WritePICTImage(const ImageInfo *image_info,
+       pixmap.bits_per_pixel=32;
+       pixmap.pack_type=0x04;
+       transfer_mode=0x40;
+-      row_bytes=(unsigned short) ((4*image->columns) | 0x8000);
++      row_bytes=4*image->columns;
+     }
+   /*
+     Allocate memory.

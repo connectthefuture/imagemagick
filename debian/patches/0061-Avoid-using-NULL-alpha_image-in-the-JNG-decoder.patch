@@ -1,0 +1,67 @@
+From c987f85c86ac553d832b08e3f21dfbb166c4ee7d Mon Sep 17 00:00:00 2001
+From: glennrp <glennrp@git.imagemagick.org>
+Date: Thu, 9 Apr 2015 16:51:44 +0000
+Subject: [PATCH] Avoid using NULL alpha_image in the JNG decoder.
+
+Avoid a NULL pointer dereference
+
+Applied-upstream:  6.9.1.2
+---
+ coders/png.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
+
+diff --git a/coders/png.c b/coders/png.c
+index ed6d613..c8c4568 100644
+--- a/coders/png.c
++++ b/coders/png.c
+@@ -4367,7 +4367,7 @@ static Image *ReadOneJNGImage(MngInfo *mng_info,
+ 
+         /* Copy IDAT header and chunk data to alpha_image->blob */
+ 
+-        if (image_info->ping == MagickFalse)
++        if (alpha_image != NULL && image_info->ping == MagickFalse)
+           {
+             if (logging != MagickFalse)
+               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+@@ -4392,7 +4392,7 @@ static Image *ReadOneJNGImage(MngInfo *mng_info,
+       {
+         /* Copy chunk data to alpha_image->blob */
+ 
+-        if (image_info->ping == MagickFalse)
++        if (alpha_image != NULL && image_info->ping == MagickFalse)
+           {
+             if (logging != MagickFalse)
+               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+@@ -4826,8 +4826,7 @@ static Image *ReadMNGImage(const ImageInfo *image_info,ExceptionInfo *exception)
+     page_geometry[MaxTextExtent];
+ 
+   Image
+-    *image,
+-    *previous;
++    *image;
+ 
+   MagickBooleanType
+     logging,
+@@ -6291,7 +6290,6 @@ static Image *ReadMNGImage(const ImageInfo *image_info,ExceptionInfo *exception)
+           ThrowReaderException(CorruptImageError,"ImproperImageHeader");
+       }
+ 
+-    previous=image;
+     mng_info->image=image;
+     mng_info->mng_type=mng_type;
+     mng_info->object_id=object_id;
+@@ -6306,11 +6304,9 @@ static Image *ReadMNGImage(const ImageInfo *image_info,ExceptionInfo *exception)
+ 
+     if (image == (Image *) NULL)
+       {
+-        if (IsImageObject(previous) != MagickFalse)
+-          {
+-            (void) DestroyImageList(previous);
+-            (void) CloseBlob(previous);
+-          }
++        if (logging != MagickFalse)
++          (void) LogMagickEvent(CoderEvent,GetMagickModule(),
++            "exit ReadJNGImage() with error");
+ 
+         MngInfoFreeStruct(mng_info,&have_mng_structure);
+         return((Image *) NULL);

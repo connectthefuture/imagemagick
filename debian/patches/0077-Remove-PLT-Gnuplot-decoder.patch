@@ -1,0 +1,147 @@
+Description: Drop the PLT/Gnuplot decoder
+  The Gnuplot delegate was vulnerable to code injection. This
+  vulnerability is connected with CVE-2016-3714 (aka ImageTragick).
+Origin: upstream, https://github.com/ImageMagick/ImageMagick/commit/e87116ab2bd070c47943d4118a18c8f3a47461e2
+Applied-Upstream: e87116ab2bd070c47943d4118a18c8f3a47461e2
+Last-Update: 2016-05-15
+Bug: https://sourceforge.net/p/graphicsmagick/mailman/message/35072963/
+Bug-CVE: CVE-2016-3714
+Bug-Debian: https://bugs.debian.org/823542
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -2595,7 +2595,6 @@ GS_LIBS = @GS_LIBS@
+ GVCDecodeDelegate = @GVCDecodeDelegate@
+ GVC_CFLAGS = @GVC_CFLAGS@
+ GVC_LIBS = @GVC_LIBS@
+-GnuplotDecodeDelegate = @GnuplotDecodeDelegate@
+ HPGLDecodeDelegate = @HPGLDecodeDelegate@
+ HTMLDecodeDelegate = @HTMLDecodeDelegate@
+ ILBMDecodeDelegate = @ILBMDecodeDelegate@
+--- a/config/delegates.xml.in
++++ b/config/delegates.xml.in
+@@ -100,7 +100,6 @@
+   <delegate decode="pcl:mono" stealth="True" command="&quot;@PCLDelegate@&quot; -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &quot;-sDEVICE=@PCLMonoDevice@&quot; -dTextAlphaBits=%u -dGraphicsAlphaBits=%u &quot;-r%s&quot; %s &quot;-sOutputFile=%s&quot; &quot;%s&quot;"/>
+   <delegate decode="pdf" encode="eps" mode="bi" command="&quot;@PSDelegate@&quot; -q -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &quot;-sDEVICE=@GSEPSDevice@&quot; &quot;-sOutputFile=%o&quot; &quot;-f%i&quot;"/>
+   <delegate decode="pdf" encode="ps" mode="bi" command="&quot;@PSDelegate@&quot; -q -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &quot;-sDEVICE=@GSPSDevice@&quot; &quot;-sOutputFile=%o&quot; &quot;-f%i&quot;"/>
+-  <delegate decode="plt" command="&quot;@EchoDelegate@&quot; &quot;set size 1.25,0.62; set terminal postscript portrait color solid; set output \'%o\'; load \'%i\'&quot; &gt; &quot;%u&quot;;&quot;@GnuplotDecodeDelegate@&quot; &quot;%u&quot;"/>
+   <delegate decode="png" encode="webp" command="&quot;@WebPEncodeDelegate@&quot; -quiet -q %Q &quot;%i&quot; -o &quot;%o&quot;"/>
+   <delegate decode="pnm" encode="ilbm" mode="encode" command="&quot;@ILBMEncodeDelegate@&quot; -24if &quot;%i&quot; &gt; &quot;%o&quot;"/>
+   <delegate decode="bmp" encode="jxr" command="mv &quot;%i&quot; &quot;%i.bmp&quot;; &quot;@JXREncodeDelegate@&quot; -i &quot;%i.bmp&quot; -o &quot;%o.jxr&quot;; mv &quot;%i.bmp&quot; &quot;%i&quot;; mv &quot;%o.jxr&quot; &quot;%o&quot;"/>
+--- a/configure
++++ b/configure
+@@ -721,7 +721,6 @@ ILBMDecodeDelegate
+ HTMLDecodeDelegate
+ HPGLDecodeDelegate
+ GVCDecodeDelegate
+-GnuplotDecodeDelegate
+ DisplayDelegate
+ EditorDelegate
+ EchoDelegate
+@@ -32765,7 +32764,6 @@ EditorDelegateDefault='xterm'
+ ConvertDelegateDefault=`echo convert | sed ${configure_transform_name}`
+ DisplayDelegateDefault=`echo display | sed ${configure_transform_name}`
+ MogrifyDelegateDefault=`echo mogrify | sed ${configure_transform_name}`
+-GnuplotDecodeDelegateDefault='gnuplot'
+ HPGLDecodeDelegateDefault='hp2xx'
+ HTMLDecodeDelegateDefault='html2ps'
+ ILBMDecodeDelegateDefault='ilbmtoppm'
+@@ -33302,47 +33300,6 @@ $as_echo "no" >&6; }
+ fi
+ 
+ 
+-# Extract the first word of ""$GnuplotDecodeDelegateDefault"", so it can be a program name with args.
+-set dummy "$GnuplotDecodeDelegateDefault"; ac_word=$2
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+-$as_echo_n "checking for $ac_word... " >&6; }
+-if ${ac_cv_path_GnuplotDecodeDelegate+:} false; then :
+-  $as_echo_n "(cached) " >&6
+-else
+-  case $GnuplotDecodeDelegate in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_GnuplotDecodeDelegate="$GnuplotDecodeDelegate" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $PATH
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-    for ac_exec_ext in '' $ac_executable_extensions; do
+-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+-    ac_cv_path_GnuplotDecodeDelegate="$as_dir/$ac_word$ac_exec_ext"
+-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-  done
+-IFS=$as_save_IFS
+-
+-  test -z "$ac_cv_path_GnuplotDecodeDelegate" && ac_cv_path_GnuplotDecodeDelegate=""$GnuplotDecodeDelegateDefault""
+-  ;;
+-esac
+-fi
+-GnuplotDecodeDelegate=$ac_cv_path_GnuplotDecodeDelegate
+-if test -n "$GnuplotDecodeDelegate"; then
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GnuplotDecodeDelegate" >&5
+-$as_echo "$GnuplotDecodeDelegate" >&6; }
+-else
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+-$as_echo "no" >&6; }
+-fi
+-
+-
+ # Extract the first word of ""$GVCDecodeDelegateDefault"", so it can be a program name with args.
+ set dummy "$GVCDecodeDelegateDefault"; ac_word=$2
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+@@ -34930,7 +34887,6 @@ if test "$with_frozenpaths" != 'yes'; th
+   DVIDecodeDelegate="$DVIDecodeDelegateDefault"
+   EchoDelegate="$EchoDelegateDefault"
+   EditorDelegate="$EditorDelegateDefault"
+-  GnuplotDecodeDelegate="$GnuplotDecodeDelegateDefault"
+   GVCDecodeDelegate="$GVCDecodeDelegateDefault"
+   HPGLDecodeDelegate="$HPGLDecodeDelegateDefault"
+   HTMLDecodeDelegate="$HTMLDecodeDelegateDefault"
+@@ -34970,7 +34926,6 @@ fi
+ 
+ 
+ 
+-
+ 
+ 
+ 
+--- a/configure.ac
++++ b/configure.ac
+@@ -3204,7 +3204,6 @@ EditorDelegateDefault='xterm'
+ ConvertDelegateDefault=`echo convert | sed ${configure_transform_name}`
+ DisplayDelegateDefault=`echo display | sed ${configure_transform_name}`
+ MogrifyDelegateDefault=`echo mogrify | sed ${configure_transform_name}`
+-GnuplotDecodeDelegateDefault='gnuplot'
+ HPGLDecodeDelegateDefault='hp2xx'
+ HTMLDecodeDelegateDefault='html2ps'
+ ILBMDecodeDelegateDefault='ilbmtoppm'
+@@ -3256,7 +3255,6 @@ AC_PATH_PROG(DVIDecodeDelegate, "$DVIDec
+ AC_PATH_PROG(EchoDelegate, "$EchoDelegateDefault", "$EchoDelegateDefault")
+ AC_PATH_PROG(EditorDelegate, "$EditorDelegateDefault", "$EditorDelegateDefault")
+ AC_PATH_PROG(DisplayDelegate, "$DisplayDelegateDefault", "$DisplayDelegateDefault")
+-AC_PATH_PROG(GnuplotDecodeDelegate, "$GnuplotDecodeDelegateDefault", "$GnuplotDecodeDelegateDefault")
+ AC_PATH_PROG(GVCDecodeDelegate, "$GVCDecodeDelegateDefault", "$GVCDecodeDelegateDefault")
+ AC_PATH_PROG(HPGLDecodeDelegate, "$HPGLDecodeDelegateDefault", "$HPGLDecodeDelegateDefault")
+ AC_PATH_PROG(HTMLDecodeDelegate, "$HTMLDecodeDelegateDefault", "$HTMLDecodeDelegateDefault")
+@@ -3433,7 +3431,6 @@ if test "$with_frozenpaths" != 'yes'; th
+   DVIDecodeDelegate="$DVIDecodeDelegateDefault"
+   EchoDelegate="$EchoDelegateDefault"
+   EditorDelegate="$EditorDelegateDefault"
+-  GnuplotDecodeDelegate="$GnuplotDecodeDelegateDefault"
+   GVCDecodeDelegate="$GVCDecodeDelegateDefault"
+   HPGLDecodeDelegate="$HPGLDecodeDelegateDefault"
+   HTMLDecodeDelegate="$HTMLDecodeDelegateDefault"
+@@ -3480,7 +3477,6 @@ AC_SUBST(GVCDecodeDelegate)
+ AC_SUBST(DVIDecodeDelegate)
+ AC_SUBST(EchoDelegate)
+ AC_SUBST(EditorDelegate)
+-AC_SUBST(GnuplotDecodeDelegate)
+ AC_SUBST(HPGLDecodeDelegate)
+ AC_SUBST(HTMLDecodeDelegate)
+ AC_SUBST(ILBMDecodeDelegate)
