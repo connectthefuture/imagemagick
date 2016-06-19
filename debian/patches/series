@@ -80,3 +80,4 @@
 0079-Indirect-filename-must-be-authorized-by-policy.patch
 0080-Prevent-indirect-reads-with-label-at.patch
 0081-Less-secure-coders-require-explicit-reference.patch
+fix-abort-on-write-rgf.patch
