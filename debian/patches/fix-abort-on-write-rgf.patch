@@ -1,0 +1,73 @@
+Description: Fix abort when writing to rgf format
+ The rgf format (LEGO MINDSTORMS EV3 images) caused a software abort because
+ exception == NULL. When WriteRGFImage is called from WriteImage, it is only
+ passed two parameters, not three. So, removed the extra parameter and use
+ image->exception instead as in other coders.
+
+Author: David Lechner <david@lechnology.com>
+Bug-Debian: https://bugs.debian.org/827643
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- a/coders/rgf.c
++++ b/coders/rgf.c
+@@ -68,7 +68,7 @@
+   Forward declarations.
+ */
+ static MagickBooleanType
+-  WriteRGFImage(const ImageInfo *,Image *,ExceptionInfo *);
++  WriteRGFImage(const ImageInfo *,Image *);
+ 
+ /*
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@@ -301,7 +301,7 @@
+ %  The format of the WriteRGFImage method is:
+ %
+ %      MagickBooleanType WriteRGFImage(const ImageInfo *image_info,
+-%        Image *image,ExceptionInfo *exception)
++%        Image *image)
+ %
+ %  A description of each parameter follows.
+ %
+@@ -312,8 +312,7 @@
+ %    o exception: return any errors or warnings in this structure.
+ %
+ */
+-static MagickBooleanType WriteRGFImage(const ImageInfo *image_info,Image *image,
+-  ExceptionInfo *exception)
++static MagickBooleanType WriteRGFImage(const ImageInfo *image_info,Image *image)
+ {
+   MagickBooleanType
+     status;
+@@ -342,9 +341,8 @@
+   assert(image->signature == MagickSignature);
+   if (image->debug != MagickFalse)
+     (void) LogMagickEvent(TraceEvent,GetMagickModule(),"%s",image->filename);
+-  assert(exception != (ExceptionInfo *) NULL);
+-  assert(exception->signature == MagickSignature);
+-  status=OpenBlob(image_info,image,WriteBinaryBlobMode,exception);
++  assert(image->exception.signature == MagickSignature);
++  status=OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception);
+   if (status == MagickFalse)
+     return(status);
+   (void) TransformImageColorspace(image,sRGBColorspace);
+@@ -363,7 +361,7 @@
+   y=0;
+   for (y=0; y < (ssize_t) image->rows; y++)
+   {
+-    p=GetVirtualPixels(image,0,y,image->columns,1,exception);
++    p=GetVirtualPixels(image,0,y,image->columns,1,&image->exception);
+     if (p == (const PixelPacket *) NULL)
+       break;
+     bit=0;
