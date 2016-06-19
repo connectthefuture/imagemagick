@@ -1,13 +1,8 @@
 Source: imagemagick
 Section: graphics
 Priority: optional
-Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Maintainer: David Lechner <david@lechnology.com>
 XSBC-Original-Maintainer: ImageMagick Packaging Team <pkg-gmagick-im-team@lists.alioth.debian.org>
-Uploaders: Luciano Bello <luciano@debian.org>,
- Daniel Kobras <kobras@debian.org>,
- Nelson A. de Oliveira <naoliv@debian.org>,
- Bastien Roucariès <roucaries.bastien+debian@gmail.com>,
- Vincent Fourmond <fourmond@debian.org>
 Standards-Version: 3.9.6
 Build-Depends: debhelper (>= 9~),
 # for linking compiling ...
@@ -39,8 +34,8 @@ Build-Depends-Indep: debhelper (>= 9~),
 		     doxygen, doxygen-latex, graphviz,
 		     libxml2-utils,
 		     xsltproc
-Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/imagemagick.git
-Vcs-Git: git://anonscm.debian.org/collab-maint/imagemagick.git
+Vcs-Browser: https://github.com/ev3dev/imagemagick
+Vcs-Git: git://github.com/ev3dev/imagemagick.git
 Homepage: http://www.imagemagick.org/
 
 # arch all package
