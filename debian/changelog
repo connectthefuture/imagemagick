@@ -1,3 +1,9 @@
+imagemagick (8:6.8.9.9-7ubuntu5.1ev3dev2) xenial; urgency=medium
+
+  * Fix misaligned bits when writing .rfg
+
+ -- David Lechner <david@lechnology.com>  Fri, 22 Jul 2016 21:52:34 -0500
+
 imagemagick (8:6.8.9.9-7ubuntu5.1ev3dev1) xenial; urgency=medium
 
   * Fix abort when writing rgf format
