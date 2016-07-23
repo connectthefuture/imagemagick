@@ -1,0 +1,30 @@
+Fix misaligned bits in the last byte when writing .rfg
+
+Author: David Lechner <david@lechnology.com>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- imagemagick-6.8.9.9.orig/coders/rgf.c
++++ imagemagick-6.8.9.9/coders/rgf.c
+@@ -384,7 +384,10 @@ static MagickBooleanType WriteRGFImage(c
+       p++;
+     }
+     if (bit != 0)
++    {
++      byte >>= 8 - bit;
+       (void) WriteBlobByte(image,byte);
++    }
+     status=SetImageProgress(image,SaveImageTag,(MagickOffsetType) y,
+       image->rows);
+     if (status == MagickFalse)

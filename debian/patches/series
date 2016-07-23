@@ -84,3 +84,4 @@
 0081-Less-secure-coders-require-explicit-reference.patch
 0082-Disable-MAGICKCORE_HAVE_POPEN.patch
 fix-abort-on-write-rgf.patch
+fix-misaligned-bits-on-write-rgf.patch
